@@ -9,6 +9,9 @@ from nltk.stem import WordNetLemmatizer
 
 
 def preprocess_text(data):
+
+    del data['article_link']
+    
     # removing signs, leaving only words
     print('Preprocessing text')
     print('Removing signs, leaving only words ')
