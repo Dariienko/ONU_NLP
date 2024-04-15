@@ -1,10 +1,8 @@
 import pandas as pd
-import numpy as np
-
-from labsnlp.CONFIG import *
-from labsnlp.preprocessing import preprocess_text
-from labsnlp.vectorize import get_tfidf_vectorizer
-from labsnlp.model import train_gaussian_nb_classifier
+from labsnlp.ml_approach.CONFIG import *
+from labsnlp.ml_approach.preprocessing import preprocess_text
+from labsnlp.ml_approach.vectorize import get_tfidf_vectorizer
+from labsnlp.ml_approach.model  import train_gaussian_nb_classifier
 
 from sklearn.metrics import roc_auc_score
 from sklearn.decomposition import PCA
