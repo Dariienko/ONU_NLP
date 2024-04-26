@@ -1,4 +1,4 @@
-import torch
+import torch.cuda
 
 from labsnlp.datasets import SequenceDataset
 from labsnlp.models import TextClassificationModdule
@@ -23,22 +23,32 @@ def train(path_to_train_data, path_to_test_data, n_epochs=1, max_sequence_length
     train_dataloader = torch.utils.data.DataLoader(
         dataset=train_dataset,
         batch_size=batch_size,
-        # collate_fn=SequenceDataset.collate_fn
     )
     test_dataloader = torch.utils.data.DataLoader(
         dataset=test_dataset,
         batch_size=batch_size,
-        # collate_fn=SequenceDataset.collate_fn
     )
 
     # init model, loss, optimizer
+    print("Init model")
     model = TextClassificationModdule(
         encoder=NaiveCustomLSTM(300, 300),
-        classifier=torch.nn.Linear(300, 1) # torch.nn.Sequential(torch.nn.Linear(300, 150), torch.nn.BatchNorm1d(150), torch.nn.Dropout(0.25), torch....
+        classifier=torch.nn.Sequential(torch.nn.Linear(300, 150), 
+                                        torch.nn.BatchNorm1d(150), 
+                                        torch.nn.Dropout(0.25),
+                                        torch.nn.Linear(150, 80),
+                                        torch.nn.Tanh(),
+                                        torch.nn.Linear(80, 20),
+                                        torch.nn.BatchNorm1d(20),
+                                        torch.nn.Dropout(0.25), 
+                                        torch.nn.ReLU(),
+                                        torch.nn.Linear(20, 1),
+                                        torch.nn.ReLU()
+                                        )
     )
 
-    loss = torch.nn.BCEWithLogitsLoss() #  log-sum-exp tric DYOR
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-3) # see what's the difference between Adam & AdamW
+    loss = torch.nn.BCEWithLogitsLoss()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-3)
 
     # tqdm -- DYOR
     for i in range(n_epochs):
@@ -57,12 +67,10 @@ def train(path_to_train_data, path_to_test_data, n_epochs=1, max_sequence_length
             L = loss(output.squeeze(1), cls.float())
             L.backward()
 
-
             optimizer.step()
             train_tqdm.set_description(f"Train loss: {L.item()}")
             train_tqdm.refresh()
-            break
-
+        
         # Validation loop
         model.eval()
         val_loss = []
